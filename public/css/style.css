@@ -188,6 +188,21 @@ body {
   cursor: pointer;
 }
 .field select:focus { outline: 2px solid rgba(84, 87, 217, .2); border-color: var(--accent); }
+.limit-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.limit-row .field-hint { margin: 0; }
+.input-num {
+  width: 104px;
+  padding: 9px 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.input-num::placeholder { color: var(--text-faint); }
+.input-num:focus { outline: 2px solid rgba(84, 87, 217, .2); border-color: var(--accent); }
 .field-check { flex-direction: row; align-items: flex-start; gap: 10px; cursor: pointer; }
 .field-check input { margin: 3px 0 0; width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 

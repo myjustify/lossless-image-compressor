@@ -2,8 +2,8 @@ import JSZip from 'jszip';
 import { createPool } from './pool.js';
 import { sniffFormat, FORMAT_LABEL, formatBytes } from './format.js';
 
-const MAX_FILES = 30;
 const MAX_SIZE = 40 * 1024 * 1024;
+const LIMIT_KEY = 'lic.maxFiles';
 
 const state = { items: [], busy: false, done: 0, total: 0 };
 const wasmBase = new URL('wasm/', document.baseURI).href;
@@ -22,6 +22,9 @@ const el = {
   targetField: document.getElementById('targetField'),
   effort: document.getElementById('effort'),
   effortField: document.getElementById('effortField'),
+  maxFiles: document.getElementById('maxFiles'),
+  maxFilesHint: document.getElementById('maxFilesHint'),
+  dropHint: document.getElementById('dropHint'),
   engineNote: document.getElementById('engineNote'),
   resultCard: document.getElementById('resultCard'),
   countBadge: document.getElementById('countBadge'),
@@ -86,6 +89,20 @@ function syncSettings() {
   el.qualityValue.textContent = el.quality.value;
 }
 
+/* 张数上限：留空或 0 表示不限制 */
+function readLimit() {
+  const n = parseInt(el.maxFiles.value, 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function applyLimit(limit) {
+  el.dropHint.textContent = '支持 PNG / JPG / WebP / GIF / BMP / AVIF，单张最大 40MB，'
+    + (limit ? `最多 ${limit} 张` : '张数不限');
+  el.maxFilesHint.textContent = limit
+    ? `当前上限 ${limit} 张，超出的图片在添加时会被跳过`
+    : '留空表示不限制张数；设置后，超出上限的图片在添加时会被跳过';
+}
+
 function currentSettings() {
   return {
     mode: el.mode.value,
@@ -99,11 +116,13 @@ function currentSettings() {
 
 async function addFiles(fileList) {
   const incoming = Array.from(fileList || []);
+  const limit = readLimit();
   let added = 0;
+  let limitHit = false;
 
   for (const file of incoming) {
-    if (state.items.length >= MAX_FILES) {
-      toast(`一次最多 ${MAX_FILES} 张，其余已跳过`, 'warn');
+    if (limit && state.items.length >= limit) {
+      limitHit = true;
       break;
     }
     if (file.size > MAX_SIZE) {
@@ -138,6 +157,9 @@ async function addFiles(fileList) {
   if (added) {
     el.elapsed.hidden = true;
     render();
+  }
+  if (limitHit) {
+    toast(`已达到上限 ${limit} 张，其余图片已跳过`, 'warn');
   }
 }
 
@@ -531,6 +553,20 @@ el.quality.addEventListener('change', invalidateResults);
 el.target.addEventListener('change', invalidateResults);
 el.effort.addEventListener('change', invalidateResults);
 
+el.maxFiles.addEventListener('input', () => applyLimit(readLimit()));
+el.maxFiles.addEventListener('change', () => {
+  const limit = readLimit();
+  el.maxFiles.value = limit ? String(limit) : '';
+  applyLimit(limit);
+  try {
+    if (limit) localStorage.setItem(LIMIT_KEY, String(limit));
+    else localStorage.removeItem(LIMIT_KEY);
+  } catch (err) { /* 隐私模式下可能不可写，忽略 */ }
+  if (limit && state.items.length > limit) {
+    toast(`当前已有 ${state.items.length} 张，超过上限 ${limit} 张；已有图片不会被删除`, 'warn');
+  }
+});
+
 el.compressBtn.addEventListener('click', compressAll);
 el.downloadAllBtn.addEventListener('click', downloadAll);
 el.clearBtn.addEventListener('click', clearAll);
@@ -542,6 +578,13 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('beforeunload', () => pool.dispose());
+
+/* 上次设置的上限记在本地，换张限制不必每次重填 */
+try {
+  const saved = Number(localStorage.getItem(LIMIT_KEY));
+  if (Number.isFinite(saved) && saved > 0) el.maxFiles.value = String(saved);
+} catch (err) { /* 隐私模式下读取失败，按不限制处理 */ }
+applyLimit(readLimit());
 
 syncSettings();
 render();

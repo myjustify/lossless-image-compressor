@@ -15,6 +15,9 @@
     qualityField: document.getElementById('qualityField'),
     photoFormat: document.getElementById('photoFormat'),
     photoFormatField: document.getElementById('photoFormatField'),
+    maxFiles: document.getElementById('maxFiles'),
+    maxFilesHint: document.getElementById('maxFilesHint'),
+    dropHint: document.getElementById('dropHint'),
     resultCard: document.getElementById('resultCard'),
     countBadge: document.getElementById('countBadge'),
     compressBtn: document.getElementById('compressBtn'),
@@ -90,6 +93,20 @@
     el.qualityValue.textContent = el.quality.value;
   }
 
+  /* 张数上限：留空或 0 表示不限制 */
+  function readLimit() {
+    var n = parseInt(el.maxFiles.value, 10);
+    return isFinite(n) && n > 0 ? n : 0;
+  }
+
+  function applyLimit(limit) {
+    el.dropHint.textContent = '支持 PNG / JPG / WebP / AVIF / TIFF，单张最大 60MB，'
+      + (limit ? '最多 ' + limit + ' 张' : '张数不限');
+    el.maxFilesHint.textContent = limit
+      ? '当前上限 ' + limit + ' 张，超出的图片在添加时会被跳过'
+      : '留空表示不限制张数；设置后，超出上限的图片在添加时会被跳过';
+  }
+
   function currentSettings() {
     return {
       mode: el.mode.value,
@@ -137,9 +154,15 @@
 
   function addFiles(fileList) {
     var incoming = Array.prototype.slice.call(fileList || []);
+    var limit = readLimit();
     var added = 0;
+    var limitHit = false;
 
     incoming.forEach(function (file) {
+      if (limit && state.items.length >= limit) {
+        limitHit = true;
+        return;
+      }
       var isImage = /^image\//.test(file.type) || /\.(png|jpe?g|webp|avif|tiff?|gif)$/i.test(file.name);
       if (!isImage) return;
       if (file.size > 60 * 1024 * 1024) {
@@ -162,6 +185,9 @@
     if (added) {
       el.elapsed.hidden = true;
       render();
+    }
+    if (limitHit) {
+      toast('已达到上限 ' + limit + ' 张，其余图片已跳过', 'warn');
     }
   }
 
@@ -404,6 +430,20 @@
   el.quality.addEventListener('change', invalidateResults);
   el.photoFormat.addEventListener('change', invalidateResults);
 
+  el.maxFiles.addEventListener('input', function () { applyLimit(readLimit()); });
+  el.maxFiles.addEventListener('change', function () {
+    var limit = readLimit();
+    el.maxFiles.value = limit ? String(limit) : '';
+    applyLimit(limit);
+    try {
+      if (limit) localStorage.setItem('lic.maxFiles', String(limit));
+      else localStorage.removeItem('lic.maxFiles');
+    } catch (err) { /* 隐私模式下可能不可写，忽略 */ }
+    if (limit && state.items.length > limit) {
+      toast('当前已有 ' + state.items.length + ' 张，超过上限 ' + limit + ' 张；已有图片不会被删除', 'warn');
+    }
+  });
+
   el.compressBtn.addEventListener('click', async function () {
     if (state.busy || !state.items.length) return;
 
@@ -475,6 +515,13 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && !el.modal.hidden) closePreview();
   });
+
+  /* 上次设置的上限记在本地，换张限制不必每次重填 */
+  try {
+    var savedLimit = Number(localStorage.getItem('lic.maxFiles'));
+    if (isFinite(savedLimit) && savedLimit > 0) el.maxFiles.value = String(savedLimit);
+  } catch (err) { /* 隐私模式下读取失败，按不限制处理 */ }
+  applyLimit(readLimit());
 
   syncSettings();
   render();

@@ -38,7 +38,7 @@
             </svg>
           </div>
           <h2>把图片拖到这里，或点击选择</h2>
-          <p>支持 PNG / JPG / WebP / GIF / BMP / AVIF，单张最大 40MB，一次最多 30 张</p>
+          <p id="dropHint">支持 PNG / JPG / WebP / GIF / BMP / AVIF，单张最大 40MB，张数不限</p>
           <button type="button" class="btn btn-primary" id="pickBtn">选择图片</button>
           <input type="file" id="fileInput" multiple accept="image/*,.png,.jpg,.jpeg,.webp,.gif,.bmp,.avif" hidden>
         </div>
@@ -76,6 +76,14 @@
               <option value="normal" selected>标准 · 速度优先</option>
               <option value="deep">极致 · 多花几秒换更小体积</option>
             </select>
+          </label>
+          <label class="field field-wide" id="maxFilesField">
+            <span class="field-label">张数上限</span>
+            <span class="limit-row">
+              <input type="number" id="maxFiles" class="input-num" min="1" max="9999" step="1"
+                     inputmode="numeric" placeholder="不限" autocomplete="off">
+              <span class="field-hint" id="maxFilesHint">留空表示不限制张数；设置后，超出上限的图片在添加时会被跳过</span>
+            </span>
           </label>
         </div>
         <p class="tip tip-warn">

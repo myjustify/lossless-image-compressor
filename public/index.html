@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="本地运行的图片压缩工具：PNG 像素级无损优化，JPEG/WebP/AVIF 智能压缩。">
   <title>图片压缩 · PixelSafe</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -37,7 +38,7 @@
             </svg>
           </div>
           <h2>把图片拖到这里，或点击选择</h2>
-          <p>支持 PNG / JPG / WebP / AVIF / TIFF，单张最大 60MB，一次最多 20 张</p>
+          <p id="dropHint">支持 PNG / JPG / WebP / AVIF / TIFF，单张最大 60MB，张数不限</p>
           <button type="button" class="btn btn-primary" id="pickBtn">选择图片</button>
           <input type="file" id="fileInput" multiple accept="image/*,.png,.jpg,.jpeg,.webp,.avif,.tif,.tiff" hidden>
         </div>
@@ -68,6 +69,14 @@
               <option value="webp">WebP · 体积更小</option>
               <option value="avif">AVIF · 体积最小</option>
             </select>
+          </label>
+          <label class="field field-wide" id="maxFilesField">
+            <span class="field-label">张数上限</span>
+            <span class="limit-row">
+              <input type="number" id="maxFiles" class="input-num" min="1" max="9999" step="1"
+                     inputmode="numeric" placeholder="不限" autocomplete="off">
+              <span class="field-hint" id="maxFilesHint">留空表示不限制张数；设置后，超出上限的图片在添加时会被跳过</span>
+            </span>
           </label>
         </div>
         <p class="tip tip-warn">
