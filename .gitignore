@@ -5,3 +5,8 @@ logs/*.json
 .DS_Store
 *.log
 .env
+
+# web（Vite）产物
+web/dist/
+web/public/wasm/
+web/.vite/

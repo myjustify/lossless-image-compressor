@@ -13,7 +13,10 @@
     "pm2:stop": "pm2 stop image-compressor",
     "pm2:delete": "pm2 delete image-compressor",
     "pm2:status": "pm2 status",
-    "pm2:logs": "pm2 logs image-compressor"
+    "pm2:logs": "pm2 logs image-compressor",
+    "web:install": "pnpm --dir web install",
+    "web:dev": "pnpm --dir web dev",
+    "web:build": "pnpm --dir web build"
   },
   "engines": {
     "node": ">=18"
