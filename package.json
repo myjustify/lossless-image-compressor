@@ -1,0 +1,31 @@
+{
+  "name": "lossless-image-compressor",
+  "version": "2.0.0",
+  "private": true,
+  "description": "本地运行的图片压缩服务：PNG 严格无损优化，JPEG/WebP/AVIF 智能压缩",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart image-compressor",
+    "pm2:reload": "pm2 reload image-compressor",
+    "pm2:stop": "pm2 stop image-compressor",
+    "pm2:delete": "pm2 delete image-compressor",
+    "pm2:status": "pm2 status",
+    "pm2:logs": "pm2 logs image-compressor"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.3.0",
+    "jszip": "^3.10.2",
+    "multer": "^2.5.0",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "pm2": "^7.1.2"
+  }
+}
